@@ -136,8 +136,8 @@ IMAGE_FORMATS:
   # 512x320
   - wide
 
-  # svg + 300x40
-  - svg/readme+top
+  # svg
+  - svg/logo
 
   # none of the above
   - unknown
