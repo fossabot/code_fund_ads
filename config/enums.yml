@@ -136,10 +136,9 @@ IMAGE_FORMATS:
   # 512x320
   - wide
 
-  # svg
-  - svg/logo
+  # 400x40 svg
+  - sponsor
 
-  # none of the above
   - unknown
 
 IMAGE_CONTENT_TYPES:

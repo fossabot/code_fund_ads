@@ -18,7 +18,7 @@
 
     <div class="col-md-6">
       <% if image.attachment.blob.svg? %>
-        <%= image_tag image.attachment, style: "width:400px" %>
+        <%= image_tag image.attachment, disposition: "inline", style: "width:400px" %>
       <% else %>
         <%= image_tag image.variant(geometry: "400x400>"), style: "width:400px", class: "img-thumbnail img-fluid d-block mb-2" %>
       <% end %>
