@@ -1,19 +1,18 @@
 class CreateSponsorSvgJob < ApplicationJob
-  queue_as :default
+  queue_as :low
 
   def perform(blob)
     return unless blob.svg?
     return if blob.metadata[:format] == ENUMS::IMAGE_FORMATS::SPONSOR
 
     users = blob.attachments.where(record_type: "User").map(&:record)
-    return unless authorized?(users)
-
     sponsor_svg = SvgsController.render(partial: "/svgs/sponsors/default", locals: {logo: embedded_svg(blob).html_safe})
     filename = "sponsor-#{blob.filename.base}.svg"
     Tempfile.open(filename, Rails.root.join("tmp")) do |file|
       file.write sponsor_svg
       users.each do |user|
         file.rewind
+        next unless AuthorizedUser.new(user).can_create_sponsor_svg?
         next if user.images.search_filename(filename).present?
         user.images.attach sponsor_svg_options(io: file, filename: filename)
       end
@@ -46,10 +45,5 @@ class CreateSponsorSvgJob < ApplicationJob
     svg.set_attribute "y", 7
     svg.set_attribute "preserveAspectRatio", "xMinYMid meet"
     svg.to_s
-  end
-
-  def authorized?(users)
-    authorized_users = users.map { |user| AuthorizedUser.new(user) }
-    authorized_users.map(&:can_create_sponsor_svg?).uniq == [true]
   end
 end
