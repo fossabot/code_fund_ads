@@ -215,12 +215,28 @@ class Campaign < ApplicationRecord
 
   # public instance methods ...................................................
 
+  def standard?
+    creatives.standard.exists?
+  end
+
+  def sponsor?
+    creatives.sponsor.exists?
+  end
+
   def permitted_creatives
     Creative.where organization_id: organization_id
   end
 
   def creatives
     Creative.where id: creative_ids
+  end
+
+  def standard_creatives
+    Creative.standard.where id: creative_ids
+  end
+
+  def sponsor_creatives
+    Creative.sponsor.where id: creative_ids
   end
 
   def split_alternative_names
