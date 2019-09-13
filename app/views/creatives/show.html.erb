@@ -41,11 +41,9 @@
       <% end %>
 
       <% if @creative.sponsor? %>
-        <% @creative.sponsor_images.each do |image| %>
-          <div class="col-auto">
-            <%= image_tag image, disposition: "inline" %>
-          </div>
-        <% end %>
+        <div class="col-auto">
+          <%= image_tag @creative.sponsor_image, disposition: "inline" %>
+        </div>
       <% end %>
     </div>
   </div>
