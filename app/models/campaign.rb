@@ -391,4 +391,10 @@ class Campaign < ApplicationRecord
     else errors[:url] << "is invalid"
     end
   end
+
+  def validate_creatives
+    if standard_creatives.exists? && sponsor_creatives.exist?
+      errors.add :creatives, "cannot include both standard and sponsor types"
+    end
+  end
 end

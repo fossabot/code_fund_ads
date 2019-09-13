@@ -1,11 +1,19 @@
 <%= link_to campaign, class: "card card-frame mb-5" do %>
   <header class="card-header p-4">
     <div class="media align-items-center">
-      <div class="d-inline-block position-relative u-avatar mr-3">
-        <%= image_tag campaign.creative.small_image || "missing-200x200.png", class: "img-fluid" %>
-        <span class="badge badge-xs badge-outline-<%= campaign_status_color(campaign.status) %> badge-pos badge-pos--top-left rounded-circle"></span>
-      </div>
+      <% if campaign.standard? %>
+        <div class="d-inline-block position-relative u-avatar mr-3">
+          <%= image_tag campaign.creative.small_image || "missing-200x200.png", class: "img-fluid" %>
+          <span class="badge badge-xs badge-outline-<%= campaign_status_color(campaign.status) %> badge-pos badge-pos--top-left rounded-circle"></span>
+        </div>
+      <% end %>
       <div class="media-body">
+        <% if campaign.sponsor? %>
+          <div class="d-inline-block position-relative mb-4">
+            <%= image_tag campaign.creative.sponsor_images.first, disposition: "inline", class: "img-fluid" %>
+            <span class="badge badge-xs badge-outline-<%= campaign_status_color(campaign.status) %> badge-pos badge-pos--top-left rounded-circle"></span>
+          </div>
+        <% end %>
         <h3 class="h6 mb-0"><%= campaign.name %></h3>
         <span class="small text-success">
         </span>

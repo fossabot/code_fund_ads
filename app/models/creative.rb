@@ -41,6 +41,7 @@ class Creative < ApplicationRecord
   validates :name, length: {maximum: 255, allow_blank: false}
   validates :status, inclusion: {in: ENUMS::CREATIVE_STATUSES.values}
   validates :creative_type, inclusion: {in: ENUMS::CREATIVE_TYPES.values}
+  validate :validate_images
 
   # callbacks .................................................................
   after_commit :touch_campaigns, on: [:update]
@@ -153,5 +154,11 @@ class Creative < ApplicationRecord
 
   def touch_campaigns
     campaigns.map(&:touch)
+  end
+
+  def validate_images
+    if standard_images.exists? && sponsor_images.exists?
+      errors.add :images, "cannot include both standard and sponsor types"
+    end
   end
 end
