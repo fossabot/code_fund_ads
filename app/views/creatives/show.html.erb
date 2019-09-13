@@ -32,9 +32,19 @@
     </div>
 
     <div class="row">
-      <% ENUMS::AD_TEMPLATES.values.each do |template| %>
-        <% ["light", "dark"].each do |theme| %>
-          <%= render partial: "/creatives/preview_card", locals: { creative: @creative, template: template, theme: theme } %>
+      <% if @creative.standard? %>
+        <% ENUMS::AD_TEMPLATES.values.each do |template| %>
+          <% ["light", "dark"].each do |theme| %>
+            <%= render partial: "/creatives/preview_card", locals: { creative: @creative, template: template, theme: theme } %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <% if @creative.sponsor? %>
+        <% @creative.sponsor_images.each do |image| %>
+          <div class="col-auto">
+            <%= image_tag image, disposition: "inline" %>
+          </div>
         <% end %>
       <% end %>
     </div>
