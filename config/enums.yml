@@ -93,6 +93,10 @@ CAMPAIGN_STATUS_COLORS:
 COUPON_TYPES:
   - percentage
 
+CREATIVE_TYPES:
+  - standard
+  - sponsor
+
 CREATIVE_STATUSES:
   - pending
   - active

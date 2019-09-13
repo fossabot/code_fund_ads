@@ -5,7 +5,7 @@
 #  id              :bigint           not null, primary key
 #  user_id         :bigint           not null
 #  name            :string           not null
-#  headline        :string           not null
+#  headline        :string
 #  body            :text
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
@@ -13,6 +13,7 @@
 #  organization_id :bigint
 #  cta             :string
 #  status          :string           default("pending")
+#  creative_type   :string           default("standard"), not null
 #
 
 class Creative < ApplicationRecord
@@ -34,11 +35,12 @@ class Creative < ApplicationRecord
   has_many :sponsor_images, -> { metadata_format ENUMS::IMAGE_FORMATS::SPONSOR }, through: :creative_images, source: :image
 
   # validations ...............................................................
-  validates :body, length: {maximum: 255, allow_blank: false}
-  validates :headline, length: {maximum: 255, allow_blank: false}
-  validates :cta, length: {maximum: 20, allow_blank: false}
+  validates :body, length: {maximum: 255, allow_blank: false}, if: :standard?
+  validates :headline, length: {maximum: 255, allow_blank: false}, if: :standard?
+  validates :cta, length: {maximum: 20, allow_blank: false}, if: :standard?
   validates :name, length: {maximum: 255, allow_blank: false}
   validates :status, inclusion: {in: ENUMS::CREATIVE_STATUSES.values}
+  validates :creative_type, inclusion: {in: ENUMS::CREATIVE_TYPES.values}
 
   # callbacks .................................................................
   after_commit :touch_campaigns, on: [:update]
@@ -48,8 +50,8 @@ class Creative < ApplicationRecord
   scope :search_name, ->(value) { value.blank? ? all : search_column(:name, value) }
   scope :search_user, ->(value) { value.blank? ? all : where(user_id: User.advertisers.search_name(value).or(User.advertisers.search_company(value))) }
   scope :search_user_id, ->(value) { value.blank? ? all : where(user_id: value) }
-  scope :standard, -> { joins(:creative_images).where(creative_images: {id: CreativeImage.standard}) }
-  scope :sponsor, -> { joins(:creative_images).where(creative_images: {id: CreativeImage.sponsor}) }
+  scope :standard, -> { where creative_type: ENUMS::CREATIVE_TYPES::STANDARD }
+  scope :sponsor, -> { where creative_type: ENUMS::CREATIVE_TYPES::SPONSOR }
 
   # additional config (i.e. accepts_nested_attribute_for etc...) ..............
   sanitize :headline, :body, :cta
@@ -61,11 +63,11 @@ class Creative < ApplicationRecord
   # public instance methods ...................................................
 
   def standard?
-    standard_images.exists?
+    creative_type == ENUMS::CREATIVE_TYPES::STANDARD
   end
 
   def sponsor?
-    sponsor_images.exists?
+    creative_type == ENUMS::CREATIVE_TYPES::SPONSOR
   end
 
   def pending?

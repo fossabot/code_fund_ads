@@ -216,11 +216,11 @@ class Campaign < ApplicationRecord
   # public instance methods ...................................................
 
   def standard?
-    creatives.standard.exists?
+    standard_creatives.exists?
   end
 
   def sponsor?
-    creatives.sponsor.exists?
+    sponsor_creatives.exists?
   end
 
   def permitted_creatives

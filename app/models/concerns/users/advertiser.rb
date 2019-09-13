@@ -40,6 +40,12 @@ module Users
       list.map { |i| Image.new(i) }
     end
 
+    def sponsor_images(wrapped = false)
+      list = images.metadata_format(ENUMS::IMAGE_FORMATS::SPONSOR)
+      return list unless wrapped
+      list.map { |i| Image.new(i) }
+    end
+
     def impressions_count_as_advertiser(start_date = nil, end_date = nil)
       return 0 unless advertiser?
       campaigns.map { |c| c.impressions_count(start_date, end_date) }.sum

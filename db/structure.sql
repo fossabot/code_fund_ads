@@ -311,14 +311,15 @@ CREATE TABLE public.creatives (
     id bigint NOT NULL,
     user_id bigint NOT NULL,
     name character varying NOT NULL,
-    headline character varying NOT NULL,
+    headline character varying,
     body text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     legacy_id uuid,
     organization_id bigint,
     cta character varying,
-    status character varying DEFAULT 'pending'::character varying
+    status character varying DEFAULT 'pending'::character varying,
+    creative_type character varying DEFAULT 'standard'::character varying NOT NULL
 );
 
 
@@ -1647,6 +1648,13 @@ CREATE INDEX index_creative_images_on_creative_id ON public.creative_images USIN
 
 
 --
+-- Name: index_creatives_on_creative_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_creatives_on_creative_type ON public.creatives USING btree (creative_type);
+
+
+--
 -- Name: index_creatives_on_organization_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2298,6 +2306,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20190701210845'),
 ('20190715195353'),
 ('20190821192233'),
-('20190903173535');
+('20190903173535'),
+('20190913192015');
 
 
