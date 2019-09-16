@@ -8,7 +8,8 @@ class AdvertisementsController < ApplicationController
   # before_action :apply_visitor_rate_limiting
   before_action :set_campaign
   before_action :set_virtual_impression_id
-  after_action :create_virtual_impression, if: -> { @campaign.present? && @creative.present? }
+  after_action :create_virtual_impression, if: -> { @campaign.present? && @creative.present? && !sponsor? }
+  after_action :create_impression, if: :sponsor?
 
   def show
     track_event :virtual_impression_initiated
@@ -20,6 +21,7 @@ class AdvertisementsController < ApplicationController
 
     respond_to do |format|
       format.js
+      format.svg { render inline: @advertisement_html || catch_all_sponsor_html, status: :ok, layout: false }
       format.json { render "/advertisements/show", status: @advertisement_html ? :ok : :not_found, layout: false }
       format.html { render "/advertisements/show", status: @advertisement_html ? :ok : :not_found, layout: false }
     end
@@ -28,6 +30,10 @@ class AdvertisementsController < ApplicationController
   end
 
   protected
+
+  def sponsor?
+    request.format == "svg"
+  end
 
   # def visitor_cache_key
   #   "advertisements#show/#{ip_address}"
@@ -53,12 +59,24 @@ class AdvertisementsController < ApplicationController
   #   end
   # end
 
+  def catch_all_sponsor_html
+    key = "Creative/sponsor-catch-all"
+    Rails.cache.fetch(key) { File.read(Rails.root.join("app/assets/images/sponsor-catch-all.svg")) }
+  end
+
   def set_advertisement_variables
     @target = params[:target] || "codefund_ad"
     return unless @campaign
 
     @creative = choose_creative(@virtual_impression_id, @campaign)
     return unless @creative
+
+    if sponsor?
+      return @advertisement_html = begin
+        key = "#{@creative.cache_key_with_version}/#{@creative.sponsor_image.cache_key}"
+        Rails.cache.fetch(key) { @creative.sponsor_image.download }
+      end
+    end
 
     @advertisement_html = render_advertisement
     @campaign_url = advertisement_clicks_url(
@@ -303,5 +321,21 @@ class AdvertisementsController < ApplicationController
     }, expires_in: 30.seconds
 
     track_event :virtual_impression_created
+  end
+
+  def create_impression
+    return unless @campaign && @creative
+
+    CreateImpressionJob.perform_now(
+      SecureRandom.uuid,
+      @campaign.id,
+      property_id,
+      @creative.id,
+      "sponsor",
+      nil,
+      ip_address,
+      request.user_agent,
+      Time.current.iso8601,
+    )
   end
 end

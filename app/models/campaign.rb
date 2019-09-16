@@ -393,7 +393,7 @@ class Campaign < ApplicationRecord
   end
 
   def validate_creatives
-    if standard_creatives.exists? && sponsor_creatives.exist?
+    if standard_creatives.exists? && sponsor_creatives.exists?
       errors.add :creatives, "cannot include both standard and sponsor types"
     end
   end

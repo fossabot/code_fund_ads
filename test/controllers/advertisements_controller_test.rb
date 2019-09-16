@@ -54,6 +54,52 @@ class AdvertisementsControllerTest < ActionDispatch::IntegrationTest
     assert response.body.include?("CodeFund does not have an advertiser for you at this time.")
   end
 
+  test "get sponsor advertisement" do
+    Impression.delete_all
+    campaign = active_campaign(country_codes: ["US"])
+    campaign.creatives.each do |creative|
+      creative.standard_images.destroy_all
+      creative.update! creative_type: ENUMS::CREATIVE_TYPES::SPONSOR
+      CreativeImage.create! creative: creative, image: attach_sponsor_image!(campaign.user)
+    end
+    property = matched_property(campaign)
+    ip = ip_address("US")
+
+    assert Impression.count == 0
+    assert campaign.creatives.size == 1
+    assert campaign.sponsor_creatives.size == 1
+
+    get advertisements_url(property, format: :svg), headers: {"REMOTE_ADDR": ip, "User-Agent": "Rails/Minitest"}
+
+    assert_response :success
+    assert response.headers["Content-Type"] == "image/svg+xml; charset=utf-8"
+    assert response.body == campaign.creatives.first.sponsor_image.download
+    assert Impression.count == 1
+
+    impression = Impression.first
+
+    assert impression.campaign == campaign
+    assert impression.property == property
+    assert impression.ad_template == "sponsor"
+    assert impression.creative == campaign.sponsor_creatives.first
+    assert impression.ip_address == Impression.obfuscate_ip_address(ip)
+  end
+
+  test "get sponsor advertisement catch-all" do
+    Impression.delete_all
+    campaign = active_campaign(country_codes: ["US"])
+    property = matched_property(campaign)
+    Campaign.destroy_all
+    ip = ip_address("US")
+
+    get advertisements_url(property, format: :svg), headers: {"REMOTE_ADDR": ip, "User-Agent": "Rails/Minitest"}
+
+    assert Impression.count == 0
+    assert_response :success
+    assert response.headers["Content-Type"] == "image/svg+xml; charset=utf-8"
+    assert response.body == File.read(File.join("app/assets/images/sponsor-catch-all.svg"))
+  end
+
   private
 
   def active_campaign(country_codes: [])

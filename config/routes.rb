@@ -123,8 +123,8 @@ Rails.application.routes.draw do
     resource :property_dashboards, only: [:show], path: "/overview"
     resources :property_campaigns, only: [:index], path: "/campaigns"
     resources :versions, only: [:index], as: :property_versions, path: "/revisions"
-    resource :advertisements, only: [:show], path: "/funder", constraints: ->(req) { [:js, :html, :json].any? req.format }
-    resource :advertisement_tests, only: [:show], constraints: ->(req) { [:js, :html, :json].any? req.format } if Rails.env.test?
+    resource :advertisements, only: [:show], path: "/funder", constraints: ->(req) { %w[js html json svg].include? req.format }
+    resource :advertisement_tests, only: [:show], constraints: ->(req) { %w[js html json svg].include? req.format } if Rails.env.test?
     resources :comments, only: [:index], as: :property_comments
     resources :events, only: [:index], as: :property_events
   end

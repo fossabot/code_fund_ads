@@ -63,6 +63,22 @@ class ActiveSupport::TestCase
     ).first
   end
 
+  def attach_sponsor_image!(user)
+    user.images.attach(
+      io: File.open(Rails.root.join("test/assets/images/sponsor-heroku.svg")),
+      filename: "sponsor-heroku.svg",
+      content_type: "image/svg+xml",
+      metadata: {
+        identified: true,
+        width: 400,
+        height: 40,
+        analyzed: true,
+        name: "sponsor-heroku.svg",
+        format: ENUMS::IMAGE_FORMATS::SPONSOR,
+      },
+    ).first
+  end
+
   # Factory method to find a fixture and update its attributes
   def amend(options = {})
     fixture_class_name, fixture_name = options.shift
