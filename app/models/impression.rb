@@ -81,6 +81,9 @@ class Impression < ApplicationRecord
   }
   scope :fallback, -> { where fallback_campaign: true }
   scope :premium, -> { where fallback_campaign: false }
+  scope :ip_address, ->(value) { where ip_address: obfuscate_ip_address(value) }
+  scope :standard, -> { where.not ad_template: ENUMS::CREATIVE_TYPES::SPONSOR }
+  scope :sponsor, -> { where ad_template: ENUMS::CREATIVE_TYPES::SPONSOR }
 
   # additional config (i.e. accepts_nested_attribute_for etc...) ..............
   self.primary_key = "id"

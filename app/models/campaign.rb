@@ -68,6 +68,9 @@ class Campaign < ApplicationRecord
   before_save :sanitize_assigned_property_ids
 
   # scopes ....................................................................
+  # TODO: update standard/sponsor scopes to use arel instead of string interpolation
+  scope :standard, -> { where "\"campaigns\".\"creative_ids\" && ARRAY(#{Creative.standard.select(:id).to_sql})" }
+  scope :sponsor, -> { where "\"campaigns\".\"creative_ids\" && ARRAY(#{Creative.sponsor.select(:id).to_sql})" }
   scope :pending, -> { where status: ENUMS::CAMPAIGN_STATUSES::PENDING }
   scope :active, -> { where status: ENUMS::CAMPAIGN_STATUSES::ACTIVE }
   scope :archived, -> { where status: ENUMS::CAMPAIGN_STATUSES::ARCHIVED }

@@ -73,7 +73,7 @@ class AdvertisementsController < ApplicationController
 
     if sponsor?
       return @advertisement_html = begin
-        key = "#{@creative.cache_key_with_version}/#{@creative.sponsor_image.cache_key}"
+        key = "#{@creative.cache_key_with_version}/#{@creative.sponsor_image&.cache_key}"
         Rails.cache.fetch(key) { @creative.sponsor_image.download }
       end
     end
@@ -223,6 +223,7 @@ class AdvertisementsController < ApplicationController
     return nil if device_small? && property.hide_on_responsive?
 
     campaign_relation = Campaign.active.with_creative_ids.available_on(Date.current)
+    campaign_relation = sponsor? ? campaign_relation.sponsor : campaign_relation.standard
     campaign_relation = campaign_relation.where(weekdays_only: false) if Date.current.on_weekend?
     campaign_relation = campaign_relation.where(core_hours_only: false) if prohibited_hour?
     geo_targeted_campaign_relation = campaign_relation
@@ -331,7 +332,7 @@ class AdvertisementsController < ApplicationController
       @campaign.id,
       property_id,
       @creative.id,
-      "sponsor",
+      ENUMS::CREATIVE_TYPES::SPONSOR,
       nil,
       ip_address,
       request.user_agent,

@@ -1396,6 +1396,20 @@ CREATE UNIQUE INDEX impressions_default_id_advertiser_id_displayed_at_date_idx O
 
 
 --
+-- Name: index_impressions_on_ip_address; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_impressions_on_ip_address ON ONLY public.impressions USING btree (ip_address);
+
+
+--
+-- Name: impressions_default_ip_address_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX impressions_default_ip_address_idx ON public.impressions_default USING btree (ip_address);
+
+
+--
 -- Name: index_impressions_on_organization_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2205,6 +2219,13 @@ ALTER INDEX public.index_impressions_on_displayed_at_date ATTACH PARTITION publi
 --
 
 ALTER INDEX public.index_impressions_on_id_and_advertiser_id_and_displayed_at_date ATTACH PARTITION public.impressions_default_id_advertiser_id_displayed_at_date_idx;
+
+
+--
+-- Name: impressions_default_ip_address_idx; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.index_impressions_on_ip_address ATTACH PARTITION public.impressions_default_ip_address_idx;
 
 
 --
