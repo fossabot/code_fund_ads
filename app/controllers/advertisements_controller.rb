@@ -12,7 +12,7 @@ class AdvertisementsController < ApplicationController
   after_action :create_impression, if: :sponsor?
 
   def show
-    track_event :virtual_impression_initiated
+    track_event :virtual_impression_initiated unless sponsor?
 
     # TODO: deprecate legacy support on 2019-04-01
     return render_legacy_show if legacy_api_call?
@@ -310,6 +310,7 @@ class AdvertisementsController < ApplicationController
   end
 
   def create_virtual_impression
+    return if sponsor?
     return unless @campaign && @creative
 
     Rails.cache.write @virtual_impression_id, {
@@ -325,6 +326,7 @@ class AdvertisementsController < ApplicationController
   end
 
   def create_impression
+    return unless sponsor?
     return unless @campaign && @creative
 
     CreateImpressionJob.perform_now(

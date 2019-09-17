@@ -60,6 +60,8 @@ class Campaign < ApplicationRecord
   # validations ...............................................................
   validates :name, length: {maximum: 255, allow_blank: false}
   validates :status, inclusion: {in: ENUMS::CAMPAIGN_STATUSES.values}
+  validate :validate_creatives
+  validate :validate_assigned_properties
   # validate :validate_url
 
   # callbacks .................................................................
@@ -398,6 +400,16 @@ class Campaign < ApplicationRecord
   def validate_creatives
     if standard_creatives.exists? && sponsor_creatives.exists?
       errors.add :creatives, "cannot include both standard and sponsor types"
+    end
+  end
+
+  def validate_assigned_properties
+    if sponsor?
+      # TODO: validate that the campaign dates don't overlap with any other campaigns targeting the assigned properties
+
+      if assigned_properties.map(&:restrict_to_sponsor_campaigns?).uniq != [true]
+        errors.add :assigned_properties, "must be set to properties restricted to 'sponsor' campaigns"
+      end
     end
   end
 end

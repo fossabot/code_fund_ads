@@ -87,6 +87,7 @@ class Impression < ApplicationRecord
 
   # additional config (i.e. accepts_nested_attribute_for etc...) ..............
   self.primary_key = "id"
+  delegate :standard?, :sponsor?, to: :creative
 
   # class methods .............................................................
   class << self

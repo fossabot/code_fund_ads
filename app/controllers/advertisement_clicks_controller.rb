@@ -29,9 +29,10 @@ class AdvertisementClicksController < ApplicationController
     @property = Property.select(:id, :name, :url).find_by(id: params[:property_id])
 
     if sponsor?
-      impression = @property.recent_sponsor_impressions(request.remote_ip).includes(:campaign, :creative).first
+      @campaign = @property.current_sponsor_campaign
+      impression = @property.recent_impressions(request.remote_ip).scoped_by(@campaign).limit(1).first
+      @campaign = nil unless impression
       @impression_id = impression&.id
-      @campaign = impression&.campaign
       @creative = impression&.creative
     else
       @impression_id = params[:impression_id]

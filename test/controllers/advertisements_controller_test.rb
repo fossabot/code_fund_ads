@@ -63,9 +63,13 @@ class AdvertisementsControllerTest < ActionDispatch::IntegrationTest
       CreativeImage.create! creative: creative, image: attach_sponsor_image!(campaign.user)
     end
     property = matched_property(campaign)
+    property.update url: "https://github.com/gitcoinco/code_fund_ads"
+    campaign.update assigned_property_ids: [property.id]
     ip = ip_address("US")
 
     assert Impression.count == 0
+    assert campaign.sponsor?
+    assert property.restrict_to_sponsor_campaigns?
     assert campaign.creatives.size == 1
     assert campaign.sponsor_creatives.size == 1
 
