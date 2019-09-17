@@ -73,7 +73,7 @@ class AdvertisementsControllerTest < ActionDispatch::IntegrationTest
     assert campaign.creatives.size == 1
     assert campaign.sponsor_creatives.size == 1
 
-    get advertisements_url(property, format: :svg), headers: {"REMOTE_ADDR": ip, "User-Agent": "Rails/Minitest"}
+    get sponsor_url(property), headers: {"REMOTE_ADDR": ip, "User-Agent": "Rails/Minitest"}
 
     assert_response :success
     assert response.headers["Content-Type"] == "image/svg+xml; charset=utf-8"
@@ -84,7 +84,7 @@ class AdvertisementsControllerTest < ActionDispatch::IntegrationTest
 
     assert impression.campaign == campaign
     assert impression.property == property
-    assert impression.ad_template == "sponsor"
+    assert impression.sponsor?
     assert impression.creative == campaign.sponsor_creatives.first
     assert impression.ip_address == Impression.obfuscate_ip_address(ip)
   end
@@ -96,7 +96,7 @@ class AdvertisementsControllerTest < ActionDispatch::IntegrationTest
     Campaign.destroy_all
     ip = ip_address("US")
 
-    get advertisements_url(property, format: :svg), headers: {"REMOTE_ADDR": ip, "User-Agent": "Rails/Minitest"}
+    get sponsor_url(property), headers: {"REMOTE_ADDR": ip, "User-Agent": "Rails/Minitest"}
 
     assert Impression.count == 0
     assert_response :success

@@ -245,7 +245,7 @@ class Campaign < ApplicationRecord
   end
 
   def split_alternative_names
-    creative_ids.map { |creative_id| Creative.new(id: creative_id).split_test_name }
+    creatives.active.select(:id).map(&:split_test_name)
   end
 
   def assigner_properties

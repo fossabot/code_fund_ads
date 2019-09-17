@@ -126,11 +126,11 @@ Rails.application.routes.draw do
     resources :property_campaigns, only: [:index], path: "/campaigns"
     resources :versions, only: [:index], as: :property_versions, path: "/revisions"
     resource :advertisements, only: [:show], path: "/funder", constraints: ->(req) { %w[js html json].include? req.format }
-    resource :advertisements, only: [:show], path: "/sponsor", constraints: ->(req) { req.format == "svg" }, defaults: {format: :svg}
-    resource :advertisement_clicks, only: [:show], path: "/visit-sponsor"
     resource :advertisement_tests, only: [:show], constraints: ->(req) { %w[js html json svg].include? req.format } if Rails.env.test?
     resources :comments, only: [:index], as: :property_comments
     resources :events, only: [:index], as: :property_events
+    get "/sponsor", to: "advertisements#show", constraints: ->(req) { req.format == "svg" }, defaults: {format: :svg}, as: :sponsor
+    get "/visit-sponsor", to: "advertisement_clicks#show", as: :sponsor_visit
   end
 
   get "/invite/:referral_code", to: "referrals#new", as: :invite

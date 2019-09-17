@@ -27,6 +27,7 @@ premium:
   cta: Premium
   headline: Premium
   body: This is a premium campaign
+  status: active
 
 fallback:
   id: 2
@@ -36,3 +37,4 @@ fallback:
   cta: Fallback
   headline: Fallback
   body: This is a fallback campaign
+  status: active
