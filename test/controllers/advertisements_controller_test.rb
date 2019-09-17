@@ -63,8 +63,8 @@ class AdvertisementsControllerTest < ActionDispatch::IntegrationTest
       CreativeImage.create! creative: creative, image: attach_sponsor_image!(campaign.user)
     end
     property = matched_property(campaign)
-    property.update url: "https://github.com/gitcoinco/code_fund_ads"
-    campaign.update assigned_property_ids: [property.id]
+    property.update! url: "https://github.com/gitcoinco/code_fund_ads"
+    campaign.update! assigned_property_ids: [property.id]
     ip = ip_address("US")
 
     assert Impression.count == 0
@@ -110,8 +110,8 @@ class AdvertisementsControllerTest < ActionDispatch::IntegrationTest
     campaign = campaigns(:premium)
     campaign.update!(
       status: ENUMS::CAMPAIGN_STATUSES::ACTIVE,
-      start_date: 1.month.ago,
-      end_date: 1.month.from_now,
+      start_date: 1.month.ago.beginning_of_month,
+      end_date: 1.month.from_now.end_of_month,
       country_codes: country_codes,
       keywords: ENUMS::KEYWORDS.keys.sample(10)
     )
@@ -124,8 +124,8 @@ class AdvertisementsControllerTest < ActionDispatch::IntegrationTest
     campaign = campaigns(:premium)
     campaign.update!(
       status: ENUMS::CAMPAIGN_STATUSES::ARCHIVED,
-      start_date: 6.months.ago,
-      end_date: 4.months.ago,
+      start_date: 6.months.ago.beginning_of_month,
+      end_date: 4.months.ago.end_of_month,
       keywords: ENUMS::KEYWORDS.keys.sample(10)
     )
     campaign
@@ -135,8 +135,8 @@ class AdvertisementsControllerTest < ActionDispatch::IntegrationTest
     campaign = campaigns(:premium)
     campaign.update!(
       status: ENUMS::CAMPAIGN_STATUSES::ACTIVE,
-      start_date: 1.month.ago,
-      end_date: 1.month.from_now,
+      start_date: 1.month.ago.beginning_of_month,
+      end_date: 1.month.from_now.end_of_month,
       keywords: [],
       fallback: true
     )

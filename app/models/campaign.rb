@@ -61,7 +61,8 @@ class Campaign < ApplicationRecord
   validates :name, length: {maximum: 255, allow_blank: false}
   validates :status, inclusion: {in: ENUMS::CAMPAIGN_STATUSES.values}
   validate :validate_creatives
-  validate :validate_assigned_properties
+  validate :validate_assigned_properties, if: :sponsor?
+  validate :validate_dates, if: :sponsor?
   # validate :validate_url
 
   # callbacks .................................................................
@@ -92,11 +93,8 @@ class Campaign < ApplicationRecord
   scope :search_user_id, ->(value) { value.blank? ? all : where(user_id: value) }
   scope :search_weekdays_only, ->(value) { value.nil? ? all : where(weekdays_only: value) }
   scope :without_assigned_property_ids, -> { where assigned_property_ids: [] }
-  scope :with_assigned_property_id, ->(property_id) {
-    value = Arel::Nodes::SqlLiteral.new(sanitize_sql_array(["ARRAY[?]", property_id]))
-    value_cast = Arel::Nodes::NamedFunction.new("CAST", [value.as("bigint[]")])
-    where Arel::Nodes::InfixOperation.new("@>", arel_table[:assigned_property_ids], value_cast)
-  }
+  scope :with_assigned_property_id, ->(property_id) { where "\"campaigns\".\"assigned_property_ids\" @> ?::bigint[]", "{#{property_id}}" }
+  scope :with_any_assigned_property_ids, ->(*property_ids) { where "\"campaigns\".\"assigned_property_ids\" && ?::bigint[]", "{#{property_ids.select(&:present?).join(",")}}" }
   scope :premium_with_assigned_property_id, ->(property_id) { premium.with_assigned_property_id property_id }
   scope :fallback_with_assigned_property_id, ->(property_id) { fallback.with_assigned_property_id property_id }
   scope :permitted_for_property_id, ->(property_id) {
@@ -380,7 +378,7 @@ class Campaign < ApplicationRecord
   end
 
   def sanitize_assigned_property_ids
-    self.assigned_property_ids = assigned_property_ids.select(&:present?).uniq.sort
+    self.assigned_property_ids = assigned_property_ids.select(&:present?).uniq.select(&:present?).sort
   end
 
   def validate_url
@@ -404,12 +402,29 @@ class Campaign < ApplicationRecord
   end
 
   def validate_assigned_properties
-    if sponsor?
-      # TODO: validate that the campaign dates don't overlap with any other campaigns targeting the assigned properties
+    return unless sponsor?
 
-      if assigned_properties.map(&:restrict_to_sponsor_campaigns?).uniq != [true]
-        errors.add :assigned_properties, "must be set to properties restricted to 'sponsor' campaigns"
+    conflicting_campaigns = Campaign
+      .with_any_assigned_property_ids(*assigned_property_ids).available_on(start_date)
+      .or(Campaign.with_any_assigned_property_ids(*assigned_property_ids).available_on(end_date))
+    if conflicting_campaigns.exists?
+      conflicting_campaigns.each do |conflicting_campaign|
+        next if conflicting_campaign == self
+        conflicting_properties = Property.where(id: assigned_property_ids & conflicting_campaign.assigned_property_ids)
+        conflicting_properties.each do |conflicting_property|
+          errors.add :base, "#{conflicting_property.analytics_key} is already reserved by #{conflicting_campaign.analytics_key} from #{conflicting_campaign.start_date.iso8601} through #{conflicting_campaign.start_date.iso8601}"
+        end
       end
     end
+
+    if assigned_properties.map(&:restrict_to_sponsor_campaigns?).uniq != [true]
+      errors.add :assigned_properties, "must be set to those restricted to sponsor campaigns i.e. GitHub properties, etc..."
+    end
+  end
+
+  def validate_dates
+    return unless sponsor?
+    errors.add :start_date, "must be set to the first day of month on sponsor campaigns" if start_date != start_date.beginning_of_month
+    errors.add :end_date, "must be set to the last day of month on sponsor campaigns" if end_date != end_date.end_of_month
   end
 end
