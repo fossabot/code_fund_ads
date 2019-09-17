@@ -332,7 +332,7 @@ class AdvertisementsController < ApplicationController
       @campaign.id,
       property_id,
       @creative.id,
-      ENUMS::CREATIVE_TYPES::SPONSOR,
+      nil,
       nil,
       ip_address,
       request.user_agent,

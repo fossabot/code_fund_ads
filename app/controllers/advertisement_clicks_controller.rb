@@ -33,7 +33,6 @@ class AdvertisementClicksController < ApplicationController
       @impression_id = impression&.id
       @campaign = impression&.campaign
       @creative = impression&.creative
-      @template = ENUMS::CREATIVE_TYPES::SPONSOR
     else
       @impression_id = params[:impression_id]
       @campaign = Campaign.select(:id, :name, :url).find_by(id: params[:campaign_id])
